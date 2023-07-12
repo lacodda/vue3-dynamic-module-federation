@@ -1,8 +1,8 @@
 <template>
   <div class="host">
     <Navbar :apps="apps" :selected="selected" :host="host" @input="host = $event" @loadServers="loadServers" @setComponent="setComponent" />
-    <component :is="comp" />
-    <div v-if="!comp" class="host__content">
+    <component :is="dynamicComponent" />
+    <div v-if="!dynamicComponent" class="host__content">
       <div class="host__title">
         <h1>Host</h1>
       </div>
@@ -21,19 +21,19 @@ import { LoadRemoteModule } from '../load-remote-module';
   },
 })
 export default class App extends Vue {
-  loadRemoteModule = new LoadRemoteModule();
-  comp: any = null;
-  host: string = process.env.APPS_URL ?? '';
-  apps: string[] = [];
-  selected: string = '';
+  public dynamicComponent: any = null;
+  public host: string = process.env.APPS_URL ?? '';
+  public apps: string[] = [];
+  public selected: string = '';
+  private loadRemoteModule = new LoadRemoteModule();
 
   async setComponent (selected: string) {
     this.selected = selected;
     if (!this.selected) {
-      this.comp = null;
+      this.dynamicComponent = null;
       return;
     }
-    this.comp = (await this.loadRemoteModule.loadComponent(this.selected, './Module')).default;
+    this.dynamicComponent = (await this.loadRemoteModule.loadComponent(this.selected, './Module')).default;
   }
 
   async loadServers () {

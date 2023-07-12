@@ -12,7 +12,7 @@
 </template>
 
 <script lang='ts'>
-import { Component, Prop, Vue } from 'vue-facing-decorator';
+import { Component, Prop, Vue, Emit } from 'vue-facing-decorator';
 
 type HTMLElementEvent<T extends HTMLElement> = Event & { target: T };
 
@@ -22,16 +22,19 @@ export default class Navbar extends Vue {
   @Prop() host: string;
   @Prop() selected: string;
 
-  loadServers (): void {
-    this.$emit('loadServers');
+  @Emit
+  loadServers (): boolean {
+    return true;
   }
 
-  setComponent (event: HTMLElementEvent<HTMLButtonElement>): void {
-    this.$emit('setComponent', event.target.value);
+  @Emit
+  setComponent (event: HTMLElementEvent<HTMLButtonElement>): string {
+    return event.target.value;
   }
 
-  onInput (event: HTMLElementEvent<HTMLButtonElement>): void {
-    this.$emit('input', event.target.value);
+  @Emit('input')
+  onInput (event: HTMLElementEvent<HTMLButtonElement>): string {
+    return event.target.value;
   }
 }
 </script>
