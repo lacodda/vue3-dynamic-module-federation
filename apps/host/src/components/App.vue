@@ -1,6 +1,13 @@
 <template>
   <div class="host">
-    <Navbar :apps="apps" :selected="selected" :host="host" @input="host = $event" @loadServers="loadServers" @setComponent="setComponent" />
+    <navbar-el>
+      <input :value="host" style="width: 100%" @input="setHost" />
+      <button-el class="btn" @click="loadServers">Download</button-el>
+      <select :value="selected" @change="setComponent">
+        <option value="">Please select one</option>
+        <option v-for="(app, key) in apps" :key="key" :value="app">{{app}}</option>
+      </select>
+    </navbar-el>
     <component :is="dynamicComponent" />
     <div v-if="!dynamicComponent" class="host__content">
       <div class="host__title">
@@ -11,36 +18,40 @@
 </template>
 
 <script lang='ts'>
-import { Component, Vue } from 'vue-facing-decorator';
-import Navbar from './Navbar.vue';
-import { LoadRemoteModule } from '../load-remote-module';
+import { Ref, ref, shallowRef } from 'vue';
+import { LoadRemoteModule } from '@libs/utils';
 
-@Component({
-  components: {
-    Navbar,
-  },
-})
-export default class App extends Vue {
-  public dynamicComponent: any = null;
-  public host: string = process.env.APPS_URL ?? '';
-  public apps: string[] = [];
-  public selected: string = '';
-  private loadRemoteModule = new LoadRemoteModule();
+type HTMLElementEvent<T extends HTMLElement> = Event & { target: T };
 
-  async setComponent (selected: string) {
-    this.selected = selected;
-    if (!this.selected) {
-      this.dynamicComponent = null;
-      return;
+export default {
+  setup () {
+    const loadRemoteModule = new LoadRemoteModule();
+    const dynamicComponent: Ref<any> = shallowRef(null);
+    const host: Ref<string> = ref(process.env.APPS_URL ?? '');
+    const apps: Ref<string[]> = ref([]);
+    const selected: Ref<string> = ref('');
+
+    function setHost (event: HTMLElementEvent<HTMLButtonElement>): void {
+      host.value = event.target.value;
     }
-    this.dynamicComponent = (await this.loadRemoteModule.loadComponent(this.selected, './Module')).default;
-  }
 
-  async loadServers () {
-    await this.loadRemoteModule.setHost(this.host).loadServers();
-    this.apps = this.loadRemoteModule.apps;
-  }
-}
+    async function setComponent (event: HTMLElementEvent<HTMLButtonElement>): Promise<void> {
+      selected.value = event.target.value;
+      if (!selected.value) {
+        dynamicComponent.value = null;
+        return;
+      }
+      dynamicComponent.value = (await loadRemoteModule.loadComponent(selected.value, './Module')).default;
+    }
+
+    async function loadServers (): Promise<void> {
+      await loadRemoteModule.setHost(host.value).loadServers();
+      apps.value = loadRemoteModule.apps;
+    }
+
+    return { host, setHost, loadServers, apps, selected, dynamicComponent, setComponent };
+  },
+};
 </script>
 
 <style scoped lang='scss'>
@@ -48,13 +59,16 @@ export default class App extends Vue {
   background: var(--gr-azure-pink);
   width: 100%;
   height: 100%;
+
   &__content {
     display: grid;
     justify-content: center;
     align-content: center;
     width: 100%;
     height: 100%;
+
     h1 {
+      font-size: var(--font-size-h1);
       width: max-content;
       text-transform: uppercase;
       background: var(--teal);

@@ -13,12 +13,15 @@
     "lib": ["ESNext", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "esModuleInterop": true,
     "noImplicitAny": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@libs/*": [ "libs/*/src" ]
+      "@/*": ["src/*"],
+      "@libs/ui": ["../../libs/ui/src", "libs/ui/src"],
+      "@libs/utils": ["../../libs/utils/src", "libs/utils/src"]
     }
   },
   "exclude": ["node_modules", "dist"]
